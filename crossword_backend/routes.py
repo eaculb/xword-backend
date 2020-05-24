@@ -16,7 +16,7 @@ api.add_resource(
 )
 
 api.add_resource(
-    "/games/-/squares",
+    "/games/-/squares/",
     views.SquareListView,
     views.SquareView,
     alternate_rule="/games/<uuid:game_id>/squares/<uuid:square_id>/",

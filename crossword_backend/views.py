@@ -13,11 +13,30 @@ from .utils import SoftDeleteMixin
 
 
 class BaseView(GenericModelView):
+    immutable_fields = ("id",)
+
     base_query_options = (raiseload("*", sql_only=True),)
 
     authentication = authentication.UserIdAuthentication()
     # FIXME
     authorization = authorization.NoOpAuthorization()
+
+    def deserialize(self, data_raw, expected_id=None, partial=False, **kwargs):
+        # TODO: Make sense of this
+        if (
+            expected_id is not None
+            and expected_id is not False
+            and self.immutable_fields
+        ):
+            for field in self.immutable_fields:
+                data_raw.pop(field, None)
+
+            expected_id = False
+            partial = partial or self.immutable_fields
+
+        return super().deserialize(
+            data_raw, expected_id=expected_id, partial=partial, **kwargs
+        )
 
 
 class UserViewBase(SoftDeleteMixin.View, BaseView):
@@ -54,7 +73,7 @@ class GameViewBase(SoftDeleteMixin.View, BaseView):
 
 class GameListView(GameViewBase):
     # TODO: filtering
-    sorting = Sorting("created_at, name", default="-created_at")
+    sorting = Sorting("created_at", "name", default="-created_at")
 
     def create_and_add_item(self, data):
         item = super().create_and_add_item(data)
@@ -62,6 +81,7 @@ class GameListView(GameViewBase):
         # Need to get game id
         models.db.session.commit()
 
+        # TODO: move to model?
         squares_to_create = []
         for row in range(item.size):
             for col in range(item.size):
@@ -115,6 +135,9 @@ class WordView(WordViewBase):
 
     def patch(self, game_id, word_id):
         return self.update((game_id, word_id), partial=True)
+
+    def delete(self, game_id, word_id):
+        return self.destroy((game_id, word_id))
 
 
 # -----------------------------------------------------------------------------

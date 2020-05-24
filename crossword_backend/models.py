@@ -59,25 +59,40 @@ class Game(SoftDeleteMixin.Model, db.Model):
     # user_id = Column(ForeignKey(User.id))
     # user = relationship(User, backref=backref("games"))
 
-    size = Column(Integer, nullable=False)
+    size = Column(Integer, default=15, nullable=False)
 
     enforce_symmetry = Column(Boolean, default=True)
     allow_rebus = Column(Boolean, default=False)
 
+    def __str__(self):
+        row_idx = 0
+        res = []
+        for square in self.squares:
+            if square.row > row_idx:
+                res.append('\n')
+                row_idx += 1
+            res.append(square.__str__())
+        return ''.join(res)
+
 
 class Square(db.Model):
     __tablename__ = "squares"
-    id = id_column()
+    id = Column(
+        UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False,
+    )
 
     game_id = Column(ForeignKey(Game.id), primary_key=True, nullable=False)
     game = relationship(
         Game,
         backref=backref(
-            "squares", cascade="all, delete-orphan", passive_deletes=True
+            "squares",
+            order_by=lambda: (Square.row, Square.col),
+            cascade="all, delete-orphan",
+            passive_deletes=True,
         ),
     )
-    row = Column(Integer, nullable=False)
-    col = Column(Integer, nullable=False)
+    row = Column(Integer, primary_key=True, nullable=False)
+    col = Column(Integer, primary_key=True, nullable=False)
 
     writeable = Column(Boolean, default=True)
 
@@ -93,6 +108,12 @@ class Square(db.Model):
             name="char_or_writeable",
         ),
     )
+
+    def __str__(self):
+        if self.writeable:
+            return self.char if self.char else "_"
+        else:
+            return "#"
 
 
 class Word(db.Model):

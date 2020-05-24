@@ -59,6 +59,9 @@ class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
     # user_id = auto_field()
     # user = fields.Nested(UserSchema, dump_only=True)
 
+    # For sorting
+    created_at = auto_field(load_only=True, dump_only=True)
+
     name = auto_field()
 
     size = auto_field(validate=validate.Range(min=4, max=21))
