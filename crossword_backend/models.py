@@ -79,9 +79,9 @@ class Square(db.Model):
     row = Column(Integer, nullable=False)
     col = Column(Integer, nullable=False)
 
-    writeable = Column(Boolean)
+    writeable = Column(Boolean, default=True)
 
-    char = Column(String)
+    char = Column(String, default=NULL)
 
     clue_number = Column(Integer)
 
@@ -89,8 +89,8 @@ class Square(db.Model):
     __table_args__ = (
         UniqueConstraint(game_id, row, col),
         CheckConstraint(
-            (writeable == (char.is_distinct_from(NULL))),
-            name="char_iff_writeable",
+            (writeable | (char.is_distinct_from(NULL))),
+            name="char_or_writeable",
         ),
     )
 

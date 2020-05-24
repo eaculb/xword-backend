@@ -56,8 +56,25 @@ class GameListView(GameViewBase):
     # TODO: filtering
     sorting = Sorting("created_at, name", default="-created_at")
 
+    def create_and_add_item(self, data):
+        item = super().create_and_add_item(data)
+
+        # Need to get game id
+        models.db.session.commit()
+
+        squares_to_create = []
+        for row in range(item.size):
+            for col in range(item.size):
+                squares_to_create.append(
+                    models.Square(game_id=item.id, row=row, col=col,)
+                )
+
+        models.db.session.add_all(squares_to_create)
+        models.db.session.commit()
+
+        return item
+
     def post(self):
-        # FIXME: additional setup
         return self.create()
 
     def get(self):
