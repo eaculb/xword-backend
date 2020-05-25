@@ -19,5 +19,5 @@ api.add_resource(
     "/games/-/squares/",
     views.SquareListView,
     views.SquareView,
-    alternate_rule="/games/<uuid:game_id>/squares/<uuid:square_id>/",
+    alternate_rule="/games/<uuid:game_id>/squares/<int:row>;<int:col>/",
 )

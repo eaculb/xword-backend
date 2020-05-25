@@ -1,4 +1,5 @@
-from marshmallow import fields, validate
+from marshmallow import fields, validate, Schema, validates_schema
+from marshmallow.exceptions import ValidationError
 from marshmallow_sqlalchemy import auto_field, SQLAlchemySchema
 
 from . import models
@@ -22,11 +23,21 @@ class SquareSchema(SQLAlchemySchema):
     row = auto_field(dump_only=True)
     col = auto_field(dump_only=True)
 
+    # For filtering
+    game_id = auto_field(load_only=True, dump_only=True)
+
     writeable = auto_field()
     # TODO: enforce rebus-ness here?
     char = auto_field()
 
     clue_number = auto_field()
+
+    # FIXME: doesn't handle the case where one of these conditions is already 
+    # on the object
+    @validates_schema
+    def validate_writeable(self, data, **kwargs):
+        if (data.get("writeable") is False) and data.get("char"):
+            raise ValidationError("Cannot set writeable to false with a char")
 
 
 class WordSchema(SQLAlchemySchema):
@@ -62,7 +73,7 @@ class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
     # For sorting
     created_at = auto_field(load_only=True, dump_only=True)
 
-    name = auto_field()
+    name = auto_field(validate=validate.Length(min=4, max=32))
 
     size = auto_field(validate=validate.Range(min=4, max=21))
 

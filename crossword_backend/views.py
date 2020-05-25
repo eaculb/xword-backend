@@ -72,7 +72,10 @@ class GameViewBase(SoftDeleteMixin.View, BaseView):
 
 
 class GameListView(GameViewBase):
-    # TODO: filtering
+    # TODO: user filtering, abstract out the soft delete bit
+    filtering = Filtering(
+        is_deleted=ColumnFilter(lambda col, val: breakpoint())
+    )
     sorting = Sorting("created_at", "name", default="-created_at")
 
     def create_and_add_item(self, data):
@@ -94,11 +97,11 @@ class GameListView(GameViewBase):
 
         return item
 
-    def post(self):
-        return self.create()
-
     def get(self):
         return self.list()
+
+    def post(self):
+        return self.create()
 
 
 class GameView(GameViewBase):
@@ -107,6 +110,9 @@ class GameView(GameViewBase):
 
     def patch(self, id):
         return self.update(id, partial=True)
+
+    def delete(self, id):
+        return self.destroy(id)
 
 
 # -----------------------------------------------------------------------------
@@ -147,7 +153,7 @@ class SquareViewBase(BaseView):
     model = models.Square
     schema = schemas.SquareSchema()
 
-    id_fields = ("game_id", "square_id")
+    id_fields = ("game_id", "row", "col")
 
     # TODO: authentication, authorization
 
@@ -161,8 +167,8 @@ class SquareListView(SquareViewBase):
 
 
 class SquareView(SquareViewBase):
-    def get(self, game_id, square_id):
-        return self.retrieve((game_id, square_id))
+    def get(self, game_id, row, col):
+        return self.retrieve((game_id, row, col))
 
-    def patch(self, game_id, square_id):
-        return self.update((game_id, square_id), partial=True)
+    def patch(self, game_id, row, col):
+        return self.update((game_id, row, col), partial=True)

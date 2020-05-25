@@ -5,6 +5,7 @@ from flask_resty import ApiError, ModelView
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.hybrid import hybrid_property
+from werkzeug.exceptions import NotFound
 
 
 def now():
@@ -17,7 +18,7 @@ class SoftDeleteMixin:
 
         @hybrid_property
         def is_deleted(self):
-            return self.deleted_at is not None
+            return self.deleted_at != None  # noqa: E711
 
     class Schema:
         deleted_at = auto_field(dump_only=True)
@@ -26,6 +27,17 @@ class SoftDeleteMixin:
         is_deleted = fields.Boolean(load_only=True, dump_only=True)
 
     class View(ModelView):
+        def get_item_or_404(self, id, **kwargs):
+            item = super().get_item_or_404(id, **kwargs)
+            if item.is_deleted:
+                raise NotFound()
+
+            return item
+
+        def filter_list_query(self, query):
+            query = query.filter_by(is_deleted=False)
+            return super().filter_list_query(query)
+
         def delete_item(self, item):
             if item.is_deleted:
                 raise ApiError(409, {"code": "invalid_item.is_deleted"})

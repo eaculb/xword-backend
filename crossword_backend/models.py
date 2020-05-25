@@ -104,7 +104,7 @@ class Square(db.Model):
     __table_args__ = (
         UniqueConstraint(game_id, row, col),
         CheckConstraint(
-            (writeable | (char.is_distinct_from(NULL))),
+            (writeable | (char.isnot_distinct_from(NULL))),
             name="char_or_writeable",
         ),
     )
