@@ -167,6 +167,13 @@ class SquareListView(SquareViewBase):
 
 
 class SquareView(SquareViewBase):
+    def update_item_raw(self, item, data):
+        # Always set char to None when making un-writeable
+        if data.get("writeable") is False and "char" not in data:
+            data["char"] = None
+
+        return super().update_item_raw(item, data)
+
     def get(self, game_id, row, col):
         return self.retrieve((game_id, row, col))
 

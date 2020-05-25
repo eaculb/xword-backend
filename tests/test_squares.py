@@ -35,7 +35,7 @@ def test_get_by_id_ok(client, game_with_squares_id):
 
 
 @pytest.mark.parametrize(
-    "update_data", ({"writeable": False}, {"char": "A"},),
+    "update_data", ({"writeable": False, "char": None}, {"char": "A"},),
 )
 def test_update_square_ok(client, game_with_squares_id, update_data):
     response = client.patch(
@@ -46,6 +46,24 @@ def test_update_square_ok(client, game_with_squares_id, update_data):
         200,
         {"row": 0, "col": 0, "writeable": True, "char": None, **update_data},
     )
+
+
+def test_update_square_automatically_nullify_char(
+    client, game_with_squares_id
+):
+    square = models.Square.query.get((game_with_squares_id, 0, 0))
+    square.char = "A"
+    models.db.session.commit()
+
+    response = client.patch(
+        f"/games/{game_with_squares_id}/squares/0;0/",
+        data={"writeable": False},
+    )
+    assert_response(response, 200)
+
+    square = models.Square.query.get((game_with_squares_id, 0, 0))
+    assert square.writeable is False
+    assert square.char is None
 
 
 @pytest.mark.parametrize(
