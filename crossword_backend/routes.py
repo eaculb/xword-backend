@@ -9,10 +9,10 @@ api = Api(app, prefix="/api")
 api.add_resource("/games/", views.GameListView, views.GameView)
 
 api.add_resource(
-    "/games/-/words/",
-    views.WordListView,
-    views.WordView,
-    alternate_rule="/games/<uuid:game_id>/words/<uuid:word_id>/",
+    "/games/-/clues/",
+    views.ClueListView,
+    views.ClueView,
+    alternate_rule="/games/<uuid:game_id>/clues/<uuid:clue_id>/",
 )
 
 api.add_resource(

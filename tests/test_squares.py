@@ -35,39 +35,35 @@ def test_get_by_id_ok(client, game_with_squares_id):
 
 
 @pytest.mark.parametrize(
-    "update_data", ({"writeable": False, "char": None}, {"char": "A"},),
+    ("update_data", "expected_is_writeable"),
+    (
+        ({"char": None}, True),
+        ({"char": "A"}, True),
+        ({"char": models.Square.BLACK}, False),
+    ),
 )
-def test_update_square_ok(client, game_with_squares_id, update_data):
+def test_update_square_ok(
+    client, expected_is_writeable, game_with_squares_id, update_data
+):
     response = client.patch(
         f"/games/{game_with_squares_id}/squares/0;0/", data=update_data
     )
     assert_response(
         response,
         200,
-        {"row": 0, "col": 0, "writeable": True, "char": None, **update_data},
+        {
+            "row": 0,
+            "col": 0,
+            "writeable": expected_is_writeable,
+            "char": None,
+            **update_data,
+        },
     )
-
-
-def test_update_square_automatically_nullify_char(
-    client, game_with_squares_id
-):
-    square = models.Square.query.get((game_with_squares_id, 0, 0))
-    square.char = "A"
-    models.db.session.commit()
-
-    response = client.patch(
-        f"/games/{game_with_squares_id}/squares/0;0/",
-        data={"writeable": False},
-    )
-    assert_response(response, 200)
-
-    square = models.Square.query.get((game_with_squares_id, 0, 0))
-    assert square.writeable is False
-    assert square.char is None
 
 
 @pytest.mark.parametrize(
-    "update_data", ({"writeable": False, "char": "A"}, {"row": 5}, {"col": 5}),
+    "update_data",
+    ({"writeable": False, "char": "A"}, {"row": 5}, {"col": 5}),
 )
 def test_update_invalid(client, game_with_squares_id, update_data):
     response = client.patch(

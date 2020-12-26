@@ -48,11 +48,9 @@ def test_create_invalid_size(client, size):
 @pytest.mark.parametrize(
     "update_data",
     (
-        {"size": 20},
         {"name": "New Name"},
         {"name": None},
         {"enforce_symmetry": False},
-        {"allow_rebus": True},
     ),
 )
 def test_update_ok(client, game_id, update_data):
@@ -63,7 +61,6 @@ def test_update_ok(client, game_id, update_data):
 @pytest.mark.parametrize(
     "update_data",
     (
-        {"size": 25},
         {"name": "foo"},
         {"name": "A very very very very very very long name"},
     ),

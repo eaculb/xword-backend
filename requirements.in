@@ -1,0 +1,8 @@
+flask
+flask-resty
+flask-resty[jwt]
+flask-sqlalchemy
+marshmallow
+marshmallow-sqlalchemy
+psycopg2
+uuid

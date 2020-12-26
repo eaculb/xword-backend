@@ -118,16 +118,16 @@ class GameView(GameViewBase):
 # -----------------------------------------------------------------------------
 
 
-class WordViewBase(BaseView):
-    model = models.Word
-    schema = schemas.WordSchema()
+class ClueViewBase(BaseView):
+    model = models.Clue
+    schema = schemas.ClueSchema()
 
-    id_fields = ("game_id", "word_id")
+    id_fields = ("game_id", "clue_id")
 
     # TODO: authentication, authorization
 
 
-class WordListView(WordViewBase):
+class ClueListView(ClueViewBase):
     filtering = Filtering(game_id=ColumnFilter(operator.eq, required=True))
     sorting = FixedSorting("direction,clue_number")
 
@@ -135,15 +135,15 @@ class WordListView(WordViewBase):
         return self.list()
 
 
-class WordView(WordViewBase):
-    def get(self, game_id, word_id):
-        return self.retrieve((game_id, word_id))
+class ClueView(ClueViewBase):
+    def get(self, game_id, clue_id):
+        return self.retrieve((game_id, clue_id))
 
-    def patch(self, game_id, word_id):
-        return self.update((game_id, word_id), partial=True)
+    def patch(self, game_id, clue_id):
+        return self.update((game_id, clue_id), partial=True)
 
-    def delete(self, game_id, word_id):
-        return self.destroy((game_id, word_id))
+    def delete(self, game_id, clue_id):
+        return self.destroy((game_id, clue_id))
 
 
 # -----------------------------------------------------------------------------

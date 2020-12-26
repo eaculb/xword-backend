@@ -39,7 +39,7 @@ def id_column():
 
 # -----------------------------------------------------------------------------
 
-
+# Unused
 class User(SoftDeleteMixin.Model, db.Model):
     __tablename__ = "users"
     id = id_column()
@@ -51,32 +51,25 @@ class User(SoftDeleteMixin.Model, db.Model):
 
 class Game(SoftDeleteMixin.Model, db.Model):
     __tablename__ = "games"
+
     id = id_column()
     created_at = Column(TIMESTAMP, default=now, nullable=False)
 
     name = Column(Text)
+    size = Column(Integer, default=15, nullable=False)
+
+    enforce_symmetry = Column(Boolean, default=True)
 
     # user_id = Column(ForeignKey(User.id))
     # user = relationship(User, backref=backref("games"))
 
-    size = Column(Integer, default=15, nullable=False)
-
-    enforce_symmetry = Column(Boolean, default=True)
-    allow_rebus = Column(Boolean, default=False)
-
-    def __str__(self):
-        row_idx = 0
-        res = []
-        for square in self.squares:
-            if square.row > row_idx:
-                res.append('\n')
-                row_idx += 1
-            res.append(square.__str__())
-        return ''.join(res)
 
 
 class Square(db.Model):
     __tablename__ = "squares"
+
+    BLACK = "_BLACK"
+
     id = Column(
         UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False,
     )
@@ -94,30 +87,17 @@ class Square(db.Model):
     row = Column(Integer, primary_key=True, nullable=False)
     col = Column(Integer, primary_key=True, nullable=False)
 
-    writeable = Column(Boolean, default=True)
-
     char = Column(String, default=NULL)
 
     clue_number = Column(Integer)
 
-    # TODO: check constraint for rebus-ness?
-    __table_args__ = (
-        UniqueConstraint(game_id, row, col),
-        CheckConstraint(
-            (writeable | (char.isnot_distinct_from(NULL))),
-            name="char_or_writeable",
-        ),
-    )
-
-    def __str__(self):
-        if self.writeable:
-            return self.char if self.char else "_"
-        else:
-            return "#"
+    @property
+    def writeable(self):
+        return self.char != self.BLACK
 
 
-class Word(db.Model):
-    __tablename__ = "words"
+class Clue(db.Model):
+    __tablename__ = "clues"
 
     class Direction(Enum):
         ROW = "ROW"
@@ -128,16 +108,9 @@ class Word(db.Model):
     game = relationship(
         Game,
         backref=backref(
-            "words", cascade="all, delete-orphan", passive_deletes=True
+            "clues", cascade="all, delete-orphan", passive_deletes=True
         ),
     )
-
-    # TODO: validate
-    word = Column(Text, nullable=False)
-
-    @property
-    def word_length(self):
-        return len(self.word)
 
     starting_square_id = Column(ForeignKey(Square.id))
     starting_square = relationship(Square)
@@ -149,4 +122,4 @@ class Word(db.Model):
     def clue_number(self):
         return self.starting_square.clue_number
 
-    __table_args__ = (UniqueConstraint(game_id, word),)
+    __table_args__ = (UniqueConstraint(starting_square_id, direction),)
