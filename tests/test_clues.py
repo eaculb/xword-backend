@@ -11,6 +11,9 @@ from .helpers import TEST_CLUE_TEXT
 
 
 def test_get_list_ok(client, game, game_id, snapshot):
+    for i, square in enumerate(game.squares[0:14]):
+        square.clue_number = i
+
     models.db.session.add_all(
         (
             models.Clue(
@@ -34,13 +37,13 @@ def test_get_list_ok(client, game, game_id, snapshot):
             models.Clue(
                 game=game,
                 starting_square=game.squares[3],
-                direction=models.Clue.Direction.COLUMN,
+                direction=models.Clue.Direction.ROW,
                 clue="fizz",
             ),
             models.Clue(
                 game=game,
                 starting_square=game.squares[4],
-                direction=models.Clue.Direction.COLUMN,
+                direction=models.Clue.Direction.ROW,
                 clue="buzz",
             ),
         )
@@ -50,11 +53,11 @@ def test_get_list_ok(client, game, game_id, snapshot):
         response,
         200,
         [
+            {"clue": "fizz"},
+            {"clue": "buzz"},
             {"clue": "foo"},
             {"clue": "bar"},
             {"clue": "foobar"},
-            {"clue": "fizz"},
-            {"clue": "buzz"},
         ],
     )
 

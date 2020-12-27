@@ -13,7 +13,7 @@ from sqlalchemy import (
     sql,
 )
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, column_property, relationship
 
 from . import app
 from .utils import SoftDeleteMixin, StrEnum, now
@@ -135,8 +135,11 @@ class Clue(db.Model):
 
     clue = Column(Text, nullable=False)
 
-    @property
-    def clue_number(self):
-        return self.starting_square.clue_number
+    clue_number = column_property(
+        sql.select((Square.clue_number,))
+        .where(Square.id == starting_square_id)
+        .limit(1)
+        .correlate_except(Square)
+    )
 
     __table_args__ = (UniqueConstraint(starting_square_id, direction),)

@@ -111,6 +111,7 @@ class ClueListView(ClueViewBase):
     schema = schemas.ClueListSchema()
 
     filtering = Filtering(game_id=ColumnFilter(operator.eq, required=True))
+    sorting = FixedSorting("-direction,clue_number")
 
     def get(self):
         return self.list()
