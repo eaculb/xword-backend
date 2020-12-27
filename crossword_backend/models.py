@@ -144,5 +144,6 @@ class Clue(db.Model):
 
     __table_args__ = (UniqueConstraint(starting_square_id, direction),)
 
+
 if app.config["LOCAL_MODE"] is True:
     db.create_all()
