@@ -12,12 +12,12 @@ from .helpers import DEFAULT_GAME_TITLE
 
 def test_get_list_ok(client, game):
     response = client.get("/games/")
-    assert_response(response, 200, [{"name": DEFAULT_GAME_TITLE}])
+    assert_response(response, 200, [{"title": DEFAULT_GAME_TITLE}])
 
 
 def test_get_by_id_ok(client, game_id):
     response = client.get(f"/games/{game_id}")
-    assert_response(response, 200, {"name": DEFAULT_GAME_TITLE})
+    assert_response(response, 200, {"title": DEFAULT_GAME_TITLE})
 
 
 def test_get_by_id_not_found(client, game_id):
@@ -45,8 +45,8 @@ def test_create_invalid_size(client, size):
 @pytest.mark.parametrize(
     "update_data",
     (
-        {"name": "New Name"},
-        {"name": None},
+        {"title": "New Name"},
+        {"title": None},
         {"enforce_symmetry": False},
     ),
 )
@@ -58,8 +58,8 @@ def test_update_ok(client, game_id, update_data):
 @pytest.mark.parametrize(
     "update_data",
     (
-        {"name": "foo"},
-        {"name": "A very very very very very very long name"},
+        {"title": "foo"},
+        {"title": "A very very very very very very long name"},
     ),
 )
 def test_update_invalid(client, game_id, update_data):
@@ -74,5 +74,5 @@ def test_soft_delete_ok(client, game_id):
     response = client.get(f"/games/{game_id}")
     assert_response(response, 404)
 
-    response = client.patch(f"/games/{game_id}", data={"name": "foo"})
+    response = client.patch(f"/games/{game_id}", data={"title": "foo"})
     assert_response(response, 404)
