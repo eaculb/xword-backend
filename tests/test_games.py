@@ -1,23 +1,13 @@
-import pytest
+import uuid
 
+import pytest
 from flask_resty.testing import assert_response
 
 from crossword_backend import models
 
-DEFAULT_GAME_NAME = "Test Game"
+from .helpers import DEFAULT_GAME_NAME
 
-
-@pytest.fixture
-def game():
-    game = models.Game(name=DEFAULT_GAME_NAME)
-    models.db.session.add(game)
-    models.db.session.commit()
-    return game
-
-
-@pytest.fixture
-def game_id(game):
-    return game.id
+# -----------------------------------------------------------------------------
 
 
 def test_get_list_ok(client, game):
@@ -28,6 +18,13 @@ def test_get_list_ok(client, game):
 def test_get_by_id_ok(client, game_id):
     response = client.get(f"/games/{game_id}")
     assert_response(response, 200, {"name": DEFAULT_GAME_NAME})
+
+
+def test_get_by_id_not_found(client, game_id):
+    wrong_game_id = str(uuid.uuid4())
+
+    response = client.get(f"/games/{wrong_game_id}")
+    assert_response(response, 404)
 
 
 @pytest.mark.parametrize("size", (5, 15, 21))

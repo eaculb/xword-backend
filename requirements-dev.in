@@ -1,5 +1,6 @@
 -r requirements.in
 
-black
-factory-boy
+fourmat
+pre-commit
 pytest
+syrupy

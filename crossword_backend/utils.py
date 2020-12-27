@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+from enum import Enum, EnumMeta
+
+from flask_resty import ApiError, ModelView
 from marshmallow import fields
 from marshmallow_sqlalchemy import auto_field
-from flask_resty import ApiError, ModelView
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -69,3 +71,27 @@ class SoftDeleteMixin:
 
         def make_undelete_data(self):
             return {"deleted_at": None}
+
+
+# -----------------------------------------------------------------------------
+
+# This is blatantly borrowed from olympus-utils
+
+
+class StrEnumMeta(EnumMeta):
+    def __new__(mcs, name, bases, attrs):
+        enum_class = super().__new__(mcs, name, bases, attrs)
+        enum_class._member_values_ = frozenset(enum_class)
+
+        return enum_class
+
+    def __contains__(cls, item):
+        return item in cls._member_values_
+
+
+class StrEnum(str, Enum, metaclass=StrEnumMeta):
+    def _generate_next_value_(name, start, count, last_values):
+        return name
+
+    def __str__(self):
+        return self.value

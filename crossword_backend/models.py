@@ -1,8 +1,9 @@
-from enum import Enum
+import uuid
+from enum import auto
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import (
     Boolean,
-    CheckConstraint,
     Column,
     ForeignKey,
     Integer,
@@ -11,13 +12,11 @@ from sqlalchemy import (
     UniqueConstraint,
     sql,
 )
-from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP
+from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import backref, relationship
-import uuid
 
 from . import app
-from .utils import SoftDeleteMixin, now
-
+from .utils import SoftDeleteMixin, StrEnum, now
 
 # -----------------------------------------------------------------------------
 
@@ -56,13 +55,27 @@ class Game(SoftDeleteMixin.Model, db.Model):
     created_at = Column(TIMESTAMP, default=now, nullable=False)
 
     name = Column(Text)
-    size = Column(Integer, default=15, nullable=False)
+    size = Column(Integer, nullable=False)
 
     enforce_symmetry = Column(Boolean, default=True)
 
     # user_id = Column(ForeignKey(User.id))
     # user = relationship(User, backref=backref("games"))
 
+    def __init__(self, size=None, **kwargs):
+        super().__init__(size=size, **kwargs)
+        squares_to_create = []
+        for row in range(size):
+            for col in range(size):
+                squares_to_create.append(
+                    Square(
+                        game=self,
+                        row=row,
+                        col=col,
+                    )
+                )
+
+        db.session.add_all(squares_to_create)
 
 
 class Square(db.Model):
@@ -71,7 +84,10 @@ class Square(db.Model):
     BLACK = "_BLACK"
 
     id = Column(
-        UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False,
+        UUID(as_uuid=True),
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
     )
 
     game_id = Column(ForeignKey(Game.id), primary_key=True, nullable=False)
@@ -99,12 +115,13 @@ class Square(db.Model):
 class Clue(db.Model):
     __tablename__ = "clues"
 
-    class Direction(Enum):
-        ROW = "ROW"
-        COLUMN = "COLUMN"
+    class Direction(StrEnum):
+        ROW = auto()
+        COLUMN = auto()
 
     id = id_column()
-    game_id = Column(ForeignKey(Game.id), primary_key=True)
+
+    game_id = Column(ForeignKey(Game.id))
     game = relationship(
         Game,
         backref=backref(

@@ -1,9 +1,9 @@
-from marshmallow import fields, validate, Schema, validates_schema
-from marshmallow.exceptions import ValidationError
-from marshmallow_sqlalchemy import auto_field, SQLAlchemySchema
+from marshmallow import fields, validate
+from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
 
 from . import models
 from .utils import SoftDeleteMixin
+
 
 # Unused
 class UserSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
@@ -32,19 +32,30 @@ class SquareSchema(SQLAlchemySchema):
     writeable = fields.Boolean(dump_only=True)
 
 
-class ClueSchema(SQLAlchemySchema):
+class ClueSchemaBase(SQLAlchemySchema):
     class Meta:
         model = models.Clue
 
+    @classmethod
+    def get_query_options(cls, load):
+        return (load.joinedload("starting_square").load_only("clue_number"),)
+
     id = auto_field(dump_only=True)
 
-    # For filtering
-    game_id = auto_field(load_only=True, dump_only=True)
+    clue_number = fields.Integer(dump_only=True)
+    clue = auto_field()
 
+    game_id = auto_field()
+
+
+class ClueListSchema(ClueSchemaBase):
     starting_square_id = auto_field()
     direction = auto_field(validate=validate.OneOf(models.Clue.Direction))
 
-    clue = auto_field()
+
+class ClueSchema(ClueSchemaBase):
+    starting_square_id = auto_field(dump_only=True)
+    direction = auto_field(dump_only=True)
 
 
 class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):

@@ -1,14 +1,15 @@
-from flask_resty import (
-    GenericModelView,
-    Filtering,
-    Sorting,
-    FixedSorting,
-    ColumnFilter,
-)
 import operator
+
+from flask_resty import (
+    ColumnFilter,
+    Filtering,
+    FixedSorting,
+    GenericModelView,
+    Sorting,
+)
 from sqlalchemy.orm import raiseload
 
-from . import models, schemas, authentication, authorization
+from . import authentication, authorization, models, schemas
 from .utils import SoftDeleteMixin
 
 
@@ -39,6 +40,7 @@ class BaseView(GenericModelView):
         )
 
 
+# XXX: All user views currently unused
 class UserViewBase(SoftDeleteMixin.View, BaseView):
     model = models.User
     schema = schemas.UserSchema()
@@ -73,29 +75,8 @@ class GameViewBase(SoftDeleteMixin.View, BaseView):
 
 class GameListView(GameViewBase):
     # TODO: user filtering, abstract out the soft delete bit
-    filtering = Filtering(
-        is_deleted=ColumnFilter(lambda col, val: breakpoint())
-    )
+    # TODO: is_deleted filtering
     sorting = Sorting("created_at", "name", default="-created_at")
-
-    def create_and_add_item(self, data):
-        item = super().create_and_add_item(data)
-
-        # Need to get game id
-        models.db.session.commit()
-
-        # TODO: move to model?
-        squares_to_create = []
-        for row in range(item.size):
-            for col in range(item.size):
-                squares_to_create.append(
-                    models.Square(game_id=item.id, row=row, col=col,)
-                )
-
-        models.db.session.add_all(squares_to_create)
-        models.db.session.commit()
-
-        return item
 
     def get(self):
         return self.list()
@@ -120,22 +101,27 @@ class GameView(GameViewBase):
 
 class ClueViewBase(BaseView):
     model = models.Clue
-    schema = schemas.ClueSchema()
 
-    id_fields = ("game_id", "clue_id")
+    id_fields = ("game_id", "id")
 
     # TODO: authentication, authorization
 
 
 class ClueListView(ClueViewBase):
+    schema = schemas.ClueListSchema()
+
     filtering = Filtering(game_id=ColumnFilter(operator.eq, required=True))
-    sorting = FixedSorting("direction,clue_number")
 
     def get(self):
         return self.list()
 
+    def post(self):
+        return self.create(allow_client_id=True)
+
 
 class ClueView(ClueViewBase):
+    schema = schemas.ClueSchema()
+
     def get(self, game_id, clue_id):
         return self.retrieve((game_id, clue_id))
 

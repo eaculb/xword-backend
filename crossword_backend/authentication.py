@@ -1,7 +1,7 @@
+from uuid import UUID
+
 import flask
 from flask_resty.jwt import JwtAuthentication
-
-from uuid import UUID
 
 
 class UserIdAuthentication(JwtAuthentication):
