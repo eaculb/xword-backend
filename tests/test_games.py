@@ -5,19 +5,19 @@ from flask_resty.testing import assert_response
 
 from crossword_backend import models
 
-from .helpers import DEFAULT_GAME_NAME
+from .helpers import DEFAULT_GAME_TITLE
 
 # -----------------------------------------------------------------------------
 
 
 def test_get_list_ok(client, game):
     response = client.get("/games/")
-    assert_response(response, 200, [{"name": DEFAULT_GAME_NAME}])
+    assert_response(response, 200, [{"name": DEFAULT_GAME_TITLE}])
 
 
 def test_get_by_id_ok(client, game_id):
     response = client.get(f"/games/{game_id}")
-    assert_response(response, 200, {"name": DEFAULT_GAME_NAME})
+    assert_response(response, 200, {"name": DEFAULT_GAME_TITLE})
 
 
 def test_get_by_id_not_found(client, game_id):

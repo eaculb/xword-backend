@@ -12,12 +12,12 @@ api.add_resource(
     "/games/-/squares/",
     views.SquareListView,
     views.SquareView,
-    alternate_rule="/games/<uuid:game_id>/squares/<int:row>;<int:col>/",
+    alternate_rule="/games/<uuid:game_id>/squares/<int:row>;<int:col>",
 )
 
 api.add_resource(
     "/games/-/clues/",
     views.ClueListView,
     views.ClueView,
-    alternate_rule="/games/<uuid:game_id>/clues/<uuid:clue_id>/",
+    alternate_rule="/games/<uuid:game_id>/clues/<uuid:clue_id>",
 )

@@ -54,7 +54,7 @@ class Game(SoftDeleteMixin.Model, db.Model):
     id = id_column()
     created_at = Column(TIMESTAMP, default=now, nullable=False)
 
-    name = Column(Text)
+    title = Column(Text)
     size = Column(Integer, nullable=False)
 
     enforce_symmetry = Column(Boolean, default=True)
@@ -143,3 +143,6 @@ class Clue(db.Model):
     )
 
     __table_args__ = (UniqueConstraint(starting_square_id, direction),)
+
+if app.config["LOCAL_MODE"] is True:
+    db.create_all()

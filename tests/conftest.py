@@ -5,7 +5,7 @@ from flask_resty.testing import ApiClient
 
 from crossword_backend import app, models
 
-from .helpers import DEFAULT_GAME_NAME, TEST_CLUE_TEXT
+from .helpers import DEFAULT_GAME_TITLE, TEST_CLUE_TEXT
 
 # -----------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ def client(monkeypatch):
 
 @pytest.fixture
 def game():
-    game = models.Game(name=DEFAULT_GAME_NAME, size=15)
+    game = models.Game(title=DEFAULT_GAME_TITLE, size=15)
     models.db.session.add(game)
     models.db.session.commit()
     return game

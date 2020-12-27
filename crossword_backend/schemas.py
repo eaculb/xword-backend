@@ -74,7 +74,7 @@ class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
     # For sorting
     created_at = auto_field(load_only=True, dump_only=True)
 
-    name = auto_field(validate=validate.Length(min=4, max=32))
+    title = auto_field(validate=validate.Length(min=4, max=32))
     size = auto_field(validate=validate.Range(min=4, max=21))
     enforce_symmetry = auto_field()
 
