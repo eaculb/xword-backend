@@ -126,21 +126,21 @@ def test_create_conflict(client, game, game_id):
 
 def test_get_by_id_ok(client, game_id, clue):
     clue_id = str(clue.id)
-    response = client.get(f"/games/{game_id}/clues/{clue_id}/")
+    response = client.get(f"/games/{game_id}/clues/{clue_id}")
     assert_response(response, 200, {"clue": TEST_CLUE_TEXT})
 
 
 def test_get_by_id_not_found(client, game_id, clue):
     wrong_clue_id = str(uuid.uuid4())
 
-    response = client.get(f"/games/{game_id}/clues/{wrong_clue_id}/")
+    response = client.get(f"/games/{game_id}/clues/{wrong_clue_id}")
     assert_response(response, 404)
 
 
 def test_update_ok(client, game_id, clue_id):
     update_data = {"clue": "A new clue"}
     response = client.patch(
-        f"/games/{game_id}/clues/{clue_id}/", data=update_data
+        f"/games/{game_id}/clues/{clue_id}", data=update_data
     )
     assert_response(
         response,
@@ -159,14 +159,14 @@ def test_update_ok(client, game_id, clue_id):
 )
 def test_update_invalid(client, game_id, clue_id, update_data):
     response = client.patch(
-        f"/games/{game_id}/clues/{clue_id}/", data=update_data
+        f"/games/{game_id}/clues/{clue_id}", data=update_data
     )
     assert_response(response, 422)
 
 
 def test_delete_ok(client, game_id, clue_id):
-    response = client.delete(f"/games/{game_id}/clues/{clue_id}/")
+    response = client.delete(f"/games/{game_id}/clues/{clue_id}")
     assert_response(response, 204)
 
-    response = client.delete(f"/games/{game_id}/clues/{clue_id}/")
+    response = client.delete(f"/games/{game_id}/clues/{clue_id}")
     assert_response(response, 404)

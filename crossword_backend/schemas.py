@@ -20,8 +20,7 @@ class SquareSchema(SQLAlchemySchema):
         model = models.Square
 
     id = auto_field(dump_only=True)
-    row = auto_field(dump_only=True)
-    col = auto_field(dump_only=True)
+    index = auto_field(dump_only=True)
 
     # For filtering
     game_id = auto_field(load_only=True, dump_only=True)

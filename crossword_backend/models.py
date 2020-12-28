@@ -64,18 +64,16 @@ class Game(SoftDeleteMixin.Model, db.Model):
 
     def __init__(self, size=None, **kwargs):
         super().__init__(size=size, **kwargs)
-        squares_to_create = []
-        for row in range(size):
-            for col in range(size):
-                squares_to_create.append(
-                    Square(
-                        game=self,
-                        row=row,
-                        col=col,
-                    )
-                )
 
-        db.session.add_all(squares_to_create)
+        db.session.add_all(
+            [
+                Square(
+                    game=self,
+                    index=i,
+                )
+                for i in range(size ** 2)
+            ]
+        )
 
 
 class Square(db.Model):
@@ -95,13 +93,12 @@ class Square(db.Model):
         Game,
         backref=backref(
             "squares",
-            order_by=lambda: (Square.row, Square.col),
+            order_by=lambda: Square.index,
             cascade="all, delete-orphan",
             passive_deletes=True,
         ),
     )
-    row = Column(Integer, primary_key=True, nullable=False)
-    col = Column(Integer, primary_key=True, nullable=False)
+    index = Column(Integer, primary_key=True, nullable=False)
 
     char = Column(String, default=NULL)
 

@@ -140,14 +140,14 @@ class SquareViewBase(BaseView):
     model = models.Square
     schema = schemas.SquareSchema()
 
-    id_fields = ("game_id", "row", "col")
+    id_fields = ("game_id", "index")
 
     # TODO: authentication, authorization
 
 
 class SquareListView(SquareViewBase):
     filtering = Filtering(game_id=ColumnFilter(operator.eq, required=True))
-    sorting = FixedSorting("row,col")
+    sorting = FixedSorting("index")
 
     def get(self):
         return self.list()
@@ -161,8 +161,8 @@ class SquareView(SquareViewBase):
 
         return super().update_item_raw(item, data)
 
-    def get(self, game_id, row, col):
-        return self.retrieve((game_id, row, col))
+    def get(self, game_id, index):
+        return self.retrieve((game_id, index))
 
-    def patch(self, game_id, row, col):
-        return self.update((game_id, row, col), partial=True)
+    def patch(self, game_id, index):
+        return self.update((game_id, index), partial=True)

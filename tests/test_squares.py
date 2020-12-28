@@ -19,7 +19,7 @@ def test_post_not_allowed(client):
 
 
 def test_get_by_id_ok(client, game_id):
-    response = client.get(f"/games/{game_id}/squares/0;0/")
+    response = client.get(f"/games/{game_id}/squares/0")
     assert_response(response, 200, ANY)
 
 
@@ -33,13 +33,12 @@ def test_get_by_id_ok(client, game_id):
     ),
 )
 def test_update_square_ok(client, expected_is_writeable, game_id, update_data):
-    response = client.patch(f"/games/{game_id}/squares/0;0/", data=update_data)
+    response = client.patch(f"/games/{game_id}/squares/0", data=update_data)
     assert_response(
         response,
         200,
         {
-            "row": 0,
-            "col": 0,
+            "index": 0,
             "writeable": expected_is_writeable,
             "char": None,
             **update_data,
@@ -49,13 +48,13 @@ def test_update_square_ok(client, expected_is_writeable, game_id, update_data):
 
 @pytest.mark.parametrize(
     "update_data",
-    ({"writeable": False, "char": "A"}, {"row": 5}, {"col": 5}),
+    ({"writeable": False, "char": "A"}, {"index": 5}),
 )
 def test_update_invalid(client, game_id, update_data):
-    response = client.patch(f"/games/{game_id}/squares/0;0/", data=update_data)
+    response = client.patch(f"/games/{game_id}/squares/0", data=update_data)
     assert_response(response, 422)
 
 
 def test_delete_not_allowed(client, game_id):
-    response = client.delete(f"/games/{game_id}/squares/0;0/")
+    response = client.delete(f"/games/{game_id}/squares/0")
     assert_response(response, 405)
