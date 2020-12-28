@@ -74,7 +74,7 @@ def test_get_list_ok(client, game, game_id):
 
 
 def test_get_list_requires_game_id(client, game, game_id):
-    response = client.get(f"/games/-/clues/")
+    response = client.get("/games/-/clues/")
     assert_response(response, 400)
 
 
