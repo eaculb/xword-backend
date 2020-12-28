@@ -52,6 +52,19 @@ def test_update_square_ok(client, expected_is_writeable, game_id, update_data):
     )
 
 
+def test_update_expected_id_conflict(client, game_id):
+    response = client.patch(
+        f"/games/{game_id}/squares/0",
+        data={
+            "game_id": game_id,
+            # Does not match route
+            "index": 1,
+            "char": "A",
+        },
+    )
+    assert_response(response, 409, [{"code": "invalid_id.mismatch"}])
+
+
 @pytest.mark.parametrize(
     "update_data",
     ({"writeable": False, "char": "A"}, {"index": 5}),
