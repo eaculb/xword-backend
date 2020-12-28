@@ -10,12 +10,23 @@ from .helpers import TEST_CLUE_TEXT
 # -----------------------------------------------------------------------------
 
 
-def test_get_list_ok(client, game, game_id, snapshot):
+def test_get_list_ok(client, game, game_id):
     for i, square in enumerate(game.squares[0:14]):
         square.clue_number = i
 
+    second_game = models.Game(title="Second Game", size=5)
+    second_game.squares[0].clue_number = 1
+    second_game_clue = models.Clue(
+        game=second_game,
+        starting_square=second_game.squares[0],
+        direction=models.Clue.Direction.ROW,
+        clue="This is for a separate game",
+    )
+
     models.db.session.add_all(
         (
+            second_game,
+            second_game_clue,
             models.Clue(
                 game=game,
                 starting_square=game.squares[0],
@@ -60,6 +71,11 @@ def test_get_list_ok(client, game, game_id, snapshot):
             {"clue": "foobar"},
         ],
     )
+
+
+def test_get_list_requires_game_id(client, game, game_id):
+    response = client.get(f"/games/-/clues/")
+    assert_response(response, 400)
 
 
 def test_create_ok(client, game, game_id):

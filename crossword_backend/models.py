@@ -143,4 +143,5 @@ class Clue(db.Model):
 
 
 if app.config["LOCAL_MODE"] is True:
+    print("initializing db in local mode")
     db.create_all()
