@@ -11,54 +11,49 @@ from .helpers import TEST_CLUE_TEXT
 
 
 def test_get_list_ok(client, game, game_id):
-    for i, square in enumerate(game.squares[0:14]):
-        square.clue_number = i
-
-    second_game = models.Game(title="Second Game", size=5)
-    second_game.squares[0].clue_number = 1
+    second_game = models.Game(
+        title="Second Game",
+        size=5,
+    )
     second_game_clue = models.Clue(
-        game=second_game,
-        starting_square=second_game.squares[0],
+        square=second_game.squares[0],
         direction=models.Clue.Direction.ROW,
         clue="This is for a separate game",
     )
 
     models.db.session.add_all(
         (
-            second_game,
+            second_game_clue,
             second_game_clue,
             models.Clue(
-                game=game,
-                starting_square=game.squares[0],
+                square=game.squares[0],
                 direction=models.Clue.Direction.COLUMN,
                 clue="foo",
             ),
             models.Clue(
-                game=game,
-                starting_square=game.squares[1],
+                square=game.squares[1],
                 direction=models.Clue.Direction.COLUMN,
                 clue="bar",
             ),
             models.Clue(
-                game=game,
-                starting_square=game.squares[2],
+                square=game.squares[2],
                 direction=models.Clue.Direction.COLUMN,
                 clue="foobar",
             ),
             models.Clue(
-                game=game,
-                starting_square=game.squares[3],
+                square=game.squares[3],
                 direction=models.Clue.Direction.ROW,
                 clue="fizz",
             ),
             models.Clue(
-                game=game,
-                starting_square=game.squares[4],
+                square=game.squares[4],
                 direction=models.Clue.Direction.ROW,
                 clue="buzz",
             ),
         )
     )
+    models.db.session.commit()
+
     response = client.get(f"/games/-/clues/?game_id={game_id}")
     assert_response(
         response,
@@ -78,18 +73,16 @@ def test_get_list_requires_game_id(client, game, game_id):
     assert_response(response, 400)
 
 
-def test_create_ok(client, game, game_id):
-    square_id = str(game.squares[0].id)
-
+def test_upsert_create_ok(client, game, game_id):
     create_data = {
         "game_id": game_id,
-        "starting_square_id": square_id,
+        "square_index": 0,
         "direction": models.Clue.Direction.ROW,
         "clue": "This is one",
     }
 
-    response = client.post(
-        "/games/-/clues/",
+    response = client.put(
+        f"/games/{game_id}/clues/0;ROW",
         data=create_data,
     )
 
@@ -101,26 +94,24 @@ def test_create_ok(client, game, game_id):
         "clue": "This is another one",
     }
 
-    response = client.post(
-        "/games/-/clues/",
+    response = client.put(
+        f"/games/{game_id}/clues/0;COLUMN",
         data=another_create_data,
     )
 
     assert_response(response, 201, another_create_data)
 
 
-def test_create_conflict(client, game, game_id):
-    square_id = str(game.squares[0].id)
-
+def test_upsert_ok(client, game, game_id):
     create_data = {
         "game_id": game_id,
-        "starting_square_id": square_id,
+        "square_index": 0,
         "direction": models.Clue.Direction.ROW,
         "clue": "This is one",
     }
 
-    response = client.post(
-        "/games/-/clues/",
+    response = client.put(
+        f"/games/{game_id}/clues/0;ROW",
         data=create_data,
     )
 
@@ -132,37 +123,46 @@ def test_create_conflict(client, game, game_id):
         "clue": "This is another one",
     }
 
-    response = client.post(
-        "/games/-/clues/",
+    # Will upsert
+    response = client.put(
+        f"/games/{game_id}/clues/0;ROW",
         data=another_create_data,
     )
 
-    assert_response(response, 409)
+    assert_response(response, 200, another_create_data)
+
+
+def test_upsert_expected_id_conflict(client, game_id):
+    response = client.put(
+        f"/games/{game_id}/clues/0;ROW",
+        data={
+            "game_id": game_id,
+            "square_index": 0,
+            "direction": models.Clue.Direction.COLUMN,
+            "clue": "This is one",
+        },
+    )
+    assert_response(response, 409, [{"code": "invalid_id.mismatch"}])
+
+
+def test_patch_not_allowed(client, game_id):
+    update_data = {"clue": "A new clue"}
+    response = client.patch(f"/games/{game_id}/clues/0;ROW", data=update_data)
+    assert_response(response, 405)
 
 
 def test_get_by_id_ok(client, game_id, clue):
-    clue_id = str(clue.id)
-    response = client.get(f"/games/{game_id}/clues/{clue_id}")
+    response = client.get(
+        f"/games/{game_id}/clues/{clue.square_index};{clue.direction}"
+    )
     assert_response(response, 200, {"clue": TEST_CLUE_TEXT})
 
 
 def test_get_by_id_not_found(client, game_id, clue):
-    wrong_clue_id = str(uuid.uuid4())
-
-    response = client.get(f"/games/{game_id}/clues/{wrong_clue_id}")
+    response = client.get(
+        f"/games/{game_id}/clues/{clue.square_index + 1};{clue.direction}"
+    )
     assert_response(response, 404)
-
-
-def test_update_ok(client, game_id, clue_id):
-    update_data = {"clue": "A new clue"}
-    response = client.patch(
-        f"/games/{game_id}/clues/{clue_id}", data=update_data
-    )
-    assert_response(
-        response,
-        200,
-        {"id": clue_id, **update_data},
-    )
 
 
 @pytest.mark.parametrize(
@@ -170,19 +170,18 @@ def test_update_ok(client, game_id, clue_id):
     (
         ({"clue": None},),
         ({"direction": models.Clue.Direction.COLUMN},),
-        ({"clue_number": 1},),
     ),
 )
-def test_update_invalid(client, game_id, clue_id, update_data):
-    response = client.patch(
-        f"/games/{game_id}/clues/{clue_id}", data=update_data
+def test_update_invalid(client, game_id, clue, update_data):
+    response = client.put(
+        f"/games/{game_id}/clues/0;ROW", data=update_data
     )
     assert_response(response, 422)
 
 
-def test_delete_ok(client, game_id, clue_id):
-    response = client.delete(f"/games/{game_id}/clues/{clue_id}")
+def test_delete_ok(client, game_id, clue):
+    response = client.delete(f"/games/{game_id}/clues/0;ROW")
     assert_response(response, 204)
 
-    response = client.delete(f"/games/{game_id}/clues/{clue_id}")
+    response = client.delete(f"/games/{game_id}/clues/0;ROW")
     assert_response(response, 404)

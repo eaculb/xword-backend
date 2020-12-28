@@ -28,12 +28,18 @@ def test_get_by_id_ok(client, game_id):
     (
         ({"char": None}, True),
         ({"char": "A"}, True),
-        ({"char": "A", "clue_number": 11}, True),
         ({"char": models.Square.BLACK}, False),
     ),
 )
 def test_update_square_ok(client, expected_is_writeable, game_id, update_data):
-    response = client.patch(f"/games/{game_id}/squares/0", data=update_data)
+    response = client.patch(
+        f"/games/{game_id}/squares/0",
+        data={
+            "game_id": game_id,
+            "index": 0,
+            **update_data,
+        },
+    )
     assert_response(
         response,
         200,

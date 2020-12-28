@@ -19,42 +19,23 @@ class SquareSchema(SQLAlchemySchema):
     class Meta:
         model = models.Square
 
-    id = auto_field(dump_only=True)
-    index = auto_field(dump_only=True)
-
-    # For filtering
-    game_id = auto_field(load_only=True, dump_only=True)
+    game_id = auto_field()
+    index = auto_field()
 
     char = auto_field()
-    clue_number = auto_field()
 
     writeable = fields.Boolean(dump_only=True)
 
 
-class ClueSchemaBase(SQLAlchemySchema):
+class ClueSchema(SQLAlchemySchema):
     class Meta:
         model = models.Clue
 
-    @classmethod
-    def get_query_options(cls, load):
-        return (load.joinedload("starting_square").load_only("clue_number"),)
-
-    id = auto_field(dump_only=True)
-
-    clue_number = fields.Integer(dump_only=True)
-    clue = auto_field()
-
     game_id = auto_field()
-
-
-class ClueListSchema(ClueSchemaBase):
-    starting_square_id = auto_field()
+    square_index = auto_field()
     direction = auto_field(validate=validate.OneOf(models.Clue.Direction))
-
-
-class ClueSchema(ClueSchemaBase):
-    starting_square_id = auto_field(dump_only=True)
-    direction = auto_field(dump_only=True)
+    
+    clue = auto_field()
 
 
 class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
@@ -65,7 +46,6 @@ class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
     def get_query_options(cls, load):
         return (
             load.selectinload("squares"),
-            load.selectinload("clues"),
         )
 
     id = auto_field(dump_only=True)
@@ -77,5 +57,4 @@ class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
     size = auto_field(validate=validate.Range(min=4, max=21))
     enforce_symmetry = auto_field()
 
-    clues = fields.List(fields.Nested(ClueSchema), dump_only=True)
     squares = fields.List(fields.Nested(SquareSchema), dump_only=True)

@@ -14,13 +14,16 @@ from .utils import SoftDeleteMixin
 
 
 class BaseView(GenericModelView):
-    immutable_fields = ("id",)
-
+    immutable_fields = ()
     base_query_options = (raiseload("*", sql_only=True),)
 
     authentication = authentication.UserIdAuthentication()
     # FIXME
     authorization = authorization.NoOpAuthorization()
+
+
+class BaseIdEntityView(BaseView):
+    immutable_fields = ("id",)
 
     def deserialize(self, data_raw, expected_id=None, partial=False, **kwargs):
         # TODO: Make sense of this
@@ -41,7 +44,7 @@ class BaseView(GenericModelView):
 
 
 # XXX: All user views currently unused
-class UserViewBase(SoftDeleteMixin.View, BaseView):
+class UserViewBase(SoftDeleteMixin.View, BaseIdEntityView):
     model = models.User
     schema = schemas.UserSchema()
 
@@ -66,7 +69,7 @@ class UserView(UserViewBase):
 # -----------------------------------------------------------------------------
 
 
-class GameViewBase(SoftDeleteMixin.View, BaseView):
+class GameViewBase(SoftDeleteMixin.View, BaseIdEntityView):
     model = models.Game
     schema = schemas.GameSchema()
 
@@ -101,36 +104,30 @@ class GameView(GameViewBase):
 
 class ClueViewBase(BaseView):
     model = models.Clue
+    schema = schemas.ClueSchema()
 
-    id_fields = ("game_id", "id")
+    id_fields = ("game_id", "square_index", "direction")
 
     # TODO: authentication, authorization
 
 
 class ClueListView(ClueViewBase):
-    schema = schemas.ClueListSchema()
-
     filtering = Filtering(game_id=ColumnFilter(operator.eq, required=True))
-    sorting = FixedSorting("-direction,clue_number")
+    sorting = FixedSorting("-direction,square_index")
 
     def get(self):
         return self.list()
 
-    def post(self):
-        return self.create(allow_client_id=True)
-
 
 class ClueView(ClueViewBase):
-    schema = schemas.ClueSchema()
+    def get(self, game_id, square_index, direction):
+        return self.retrieve((game_id, square_index, direction))
 
-    def get(self, game_id, clue_id):
-        return self.retrieve((game_id, clue_id))
+    def put(self, game_id, square_index, direction):
+        return self.upsert((game_id, square_index, direction))
 
-    def patch(self, game_id, clue_id):
-        return self.update((game_id, clue_id), partial=True)
-
-    def delete(self, game_id, clue_id):
-        return self.destroy((game_id, clue_id))
+    def delete(self, game_id, square_index, direction):
+        return self.destroy((game_id, square_index, direction))
 
 
 # -----------------------------------------------------------------------------

@@ -6,6 +6,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
     String,
     Text,
@@ -13,7 +14,7 @@ from sqlalchemy import (
     sql,
 )
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
-from sqlalchemy.orm import backref, column_property, relationship
+from sqlalchemy.orm import backref, column_property, foreign, relationship
 
 from . import app
 from .utils import SoftDeleteMixin, StrEnum, now
@@ -81,13 +82,6 @@ class Square(db.Model):
 
     BLACK = "_BLACK"
 
-    id = Column(
-        UUID(as_uuid=True),
-        default=uuid.uuid4,
-        unique=True,
-        nullable=False,
-    )
-
     game_id = Column(ForeignKey(Game.id), primary_key=True, nullable=False)
     game = relationship(
         Game,
@@ -102,11 +96,11 @@ class Square(db.Model):
 
     char = Column(String, default=NULL)
 
-    clue_number = Column(Integer)
-
     @property
     def writeable(self):
         return self.char != self.BLACK
+
+    __table_args__ = (UniqueConstraint(game_id, index),)
 
 
 class Clue(db.Model):
@@ -116,30 +110,23 @@ class Clue(db.Model):
         ROW = auto()
         COLUMN = auto()
 
-    id = id_column()
+    # FK constraint defined in table args
+    game_id = Column(UUID(as_uuid=True), primary_key=True, nullable=False)
 
-    game_id = Column(ForeignKey(Game.id))
-    game = relationship(
-        Game,
-        backref=backref(
-            "clues", cascade="all, delete-orphan", passive_deletes=True
-        ),
-    )
+    # FK constraint defined in table args
+    square_index = Column(Integer, primary_key=True)
+    square = relationship(Square)
 
-    starting_square_id = Column(ForeignKey(Square.id))
-    starting_square = relationship(Square)
-    direction = Column(Text, nullable=False)
+    direction = Column(Text, nullable=False, primary_key=True)
 
     clue = Column(Text, nullable=False)
 
-    clue_number = column_property(
-        sql.select((Square.clue_number,))
-        .where(Square.id == starting_square_id)
-        .limit(1)
-        .correlate_except(Square)
+    __table_args__ = (
+        ForeignKeyConstraint(
+            (game_id, square_index), (Square.game_id, Square.index)
+        ),
+        UniqueConstraint(game_id, square_index, direction),
     )
-
-    __table_args__ = (UniqueConstraint(starting_square_id, direction),)
 
 
 if app.config["LOCAL_MODE"] is True:

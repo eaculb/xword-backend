@@ -19,5 +19,5 @@ api.add_resource(
     "/games/-/clues/",
     views.ClueListView,
     views.ClueView,
-    alternate_rule="/games/<uuid:game_id>/clues/<uuid:clue_id>",
+    alternate_rule="/games/<uuid:game_id>/clues/<int:square_index>;<string:direction>",
 )

@@ -64,16 +64,10 @@ def first_square_id(first_square):
 @pytest.fixture
 def clue(game, first_square):
     clue = models.Clue(
-        starting_square=first_square,
-        game=game,
+        square=first_square,
         direction=models.Clue.Direction.ROW,
         clue=TEST_CLUE_TEXT,
     )
     models.db.session.add(clue)
     models.db.session.commit()
     return clue
-
-
-@pytest.fixture
-def clue_id(clue):
-    return str(clue.id)
