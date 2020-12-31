@@ -56,5 +56,3 @@ class GameSchema(SoftDeleteMixin.Schema, SQLAlchemySchema):
     title = auto_field(validate=validate.Length(min=4, max=32))
     size = auto_field(validate=validate.Range(min=4, max=21))
     enforce_symmetry = auto_field()
-
-    squares = fields.List(fields.Nested(SquareSchema), dump_only=True)
