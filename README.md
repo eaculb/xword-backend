@@ -1,3 +1,7 @@
+## About
+
+:warning: This project is currently in progress! It is the backend for a full-stack crossword-builder app.
+
 ## Setup
 
 1. Install pyenv and pyenv-virtualenv
