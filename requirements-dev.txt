@@ -59,7 +59,7 @@ isort==5.6.4
     # via fourmat
 itsdangerous==1.1.0
     # via flask
-jinja2==2.11.2
+jinja2==2.11.3
     # via flask
 konch==4.3.0
     # via flask-resty
