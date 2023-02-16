@@ -63,8 +63,10 @@ jinja2==2.11.3
     # via flask
 konch==4.3.0
     # via flask-resty
-markupsafe==1.1.1
-    # via jinja2
+markupsafe==2.1.2
+    # via
+    #   jinja2
+    #   werkzeug
 marshmallow==3.10.0
     # via
     #   -r requirements.in
@@ -132,7 +134,7 @@ uuid==1.30
     # via -r requirements.in
 virtualenv==20.2.2
     # via pre-commit
-werkzeug==1.0.1
+werkzeug==2.2.3
     # via
     #   flask
     #   flask-resty
