@@ -15,11 +15,13 @@ attrs==20.3.0
     #   syrupy
 black==20.8b1
     # via fourmat
+blinker==1.6.2
+    # via flask
 cffi==1.14.4
     # via cryptography
 cfgv==3.2.0
     # via pre-commit
-click==7.1.2
+click==8.1.3
     # via
     #   black
     #   flask
@@ -38,7 +40,7 @@ flake8==3.8.4
     #   fourmat
 flake8-bugbear==20.1.4
     # via fourmat
-flask==1.1.2
+flask==2.3.2
     # via
     #   -r requirements.in
     #   flask-resty
@@ -57,9 +59,9 @@ iniconfig==1.1.1
     # via pytest
 isort==5.6.4
     # via fourmat
-itsdangerous==1.1.0
+itsdangerous==2.1.2
     # via flask
-jinja2==2.11.3
+jinja2==3.1.2
     # via flask
 konch==4.3.0
     # via flask-resty
@@ -132,7 +134,7 @@ uuid==1.30
     # via -r requirements.in
 virtualenv==20.2.2
     # via pre-commit
-werkzeug==2.2.3
+werkzeug==2.3.3
     # via
     #   flask
     #   flask-resty
