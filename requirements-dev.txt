@@ -26,7 +26,7 @@ click==7.1.2
     #   fourmat
 colored==1.4.2
     # via syrupy
-cryptography==39.0.1
+cryptography==41.0.0
     # via flask-resty
 distlib==0.3.1
     # via virtualenv

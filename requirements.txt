@@ -8,7 +8,7 @@ cffi==1.14.4
     # via cryptography
 click==7.1.2
     # via flask
-cryptography==39.0.1
+cryptography==41.0.0
     # via flask-resty
 flask==1.1.2
     # via
